@@ -1,6 +1,6 @@
 ---
 title: "STAT/MATH 495: Problem Set 09"
-author: "WRITE YOUR NAME(S) HERE"
+author: "Harrison Marick"
 date: "2017-11-07"
 output:
   html_document:
@@ -27,6 +27,7 @@ library(tidyverse)
 
 Please indicate who you collaborated with on this assignment: 
 
+I ride solo.
 
 
 # Question 1: Run k-means
@@ -36,7 +37,7 @@ observations_1 <- read_csv("data/observations_1.csv")
 observations_2 <- read_csv("data/observations_2.csv")
 
 # Set observations to be one of two datasets
-observations <- observations_2
+observations <- observations_1
 
 # Fit model for k=2
 k <- 2
@@ -71,10 +72,10 @@ results.
 
 **Answers**:
 
-1.
-1.
-1.
-1.
+1. Very inconsistent. Cluster centers seem to be very different with each iteration.
+1. The points are scattered throughout, and there is no "natural" dividing point.
+1. Very consistent. Little change from trial to trial.
+1. Looking at the scatterplot, we can see two distinct groups of points.
 
 
 
@@ -85,17 +86,32 @@ Don't worry about doing it for general $k$; keep it simple and do it for $k=2$
 specifically. Apply it to `observations_2` from above.
 
 ```{r}
-# Hint:
 library(proxy)
-A <- data_frame(
-  x1 = c(0, 0.5, 0.75, 1),
-  x2 = c(0, 0.5, 0.75, 1)
-)
-B <- data_frame(
-  x1 = c(1, 0),
-  x2 = c(1, 0)
-)
-distance_matrix <- proxy::dist(x=A, y=B)
-distance_matrix
-apply(distance_matrix, 1, which.min)
+
+c1=runif(2, 0, 2) #randomly select first center (x1, x2 ~ U(0,2))
+c2=runif(2, 0, 2) #randomly select second center
+centers=data_frame(x1=c(c1[1], c2[1]), x2=c(c1[2], c2[2]))
+dist1=sqrt(8) #max possible distance
+dist2=sqrt(8) #max possible distance)
+while ((dist1+dist2)>0.01){ #threshold of movement between 
+points=observations_2
+distance_matrix <- proxy::dist(x=points, y=centers)
+#distance_matrix
+points$cluster=as.factor(apply(distance_matrix, 1, which.min))
+c1=c(mean(filter(points, cluster==1)$x1), mean(filter(points, cluster==1)$x2)) #new center1
+c2=c(mean(filter(points, cluster==2)$x1), mean(filter(points, cluster==2)$x2)) #new center2
+
+centers_new=data_frame(x1=c(c1[1], c2[1]), x2=c(c1[2], c2[2])) #store new center
+dist1<-sqrt((centers$x1[1]-centers_new$x1[1])^2+(centers$x2[1]-centers_new$x2[1])^2) 
+#how far did first cluster center move?
+dist2<-sqrt((centers$x1[2]-centers_new$x1[2])^2+(centers$x2[2]-centers_new$x2[2])^2)
+#how far did second cluster center move?
+centers=centers_new
+}
+centers$cluster=as.factor(c(1,2))
+
+ggplot(NULL, aes(x=x1, y=x2, col=cluster)) +
+  geom_point(data=points) +
+  geom_point(data=centers, size=5) + ggtitle("From Scratch Clustering")
+
 ```
